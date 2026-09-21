@@ -83,3 +83,20 @@ WHERE user1_id = $1 AND user2_id = $2
 	}
 	return &c, nil
 }
+
+func (r *DirectChatPG) GetByID(ctx context.Context, chatID int64) (*domain.DirectChat, error) {
+	var c domain.DirectChat
+
+	err := r.pool.QueryRow(ctx, `
+SELECT id, user1_id, user2_id, user1_title, user2_title, created_at
+FROM direct_chats
+WHERE id = $1
+`, chatID).Scan(&c.ID, &c.User1ID, &c.User2ID, &c.User1Title, &c.User2Title, &c.CreatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrChatNotFound
+		}
+		return nil, err
+	}
+	return &c, nil
+}

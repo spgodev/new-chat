@@ -30,6 +30,7 @@ func main() {
 	usersRepo := repository.NewUsersRepositoryPG(pool)
 	refreshRepo := repository.NewRefreshTokenRepoPG(pool)
 	directChatsRepo := repository.NewDirectChatPG(pool)
+	messageRepo := repository.NewMessageRepositoryPG(pool)
 
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
@@ -45,17 +46,24 @@ func main() {
 		directChatsRepo,
 		usersRepo,
 	)
+	logoutService := story.NewLogoutService(refreshRepo)
 	getChatsService := story.NewGetChatsService(directChatsRepo)
+	searchUsersService := story.NewSearchUsersService(usersRepo)
+	sendMessagesService := story.NewSendMessageService(messageRepo, directChatsRepo)
+	getChatHistoryService := story.NewGetChatHistoryService(messageRepo, directChatsRepo)
 
 	registerController := controller.NewRegisterController(registerService)
 	loginController := controller.NewLoginController(loginService)
 	refreshController := controller.NewRefreshController(tokenService)
-	logoutController := controller.NewLogoutController(story.NewLogoutService(refreshRepo))
+	logoutController := controller.NewLogoutController(logoutService)
 	meController := controller.NewMeController(meService)
 	createChatController := controller.NewCreateChatController(
 		createChatService,
 	)
 	getChatsController := controller.NewGetChatsController(getChatsService)
+	searchUsersController := controller.NewSearchUsersController(searchUsersService)
+	sendMessagesController := controller.NewSendMessageController(sendMessagesService)
+	getChatHistoryController := controller.NewGetChatHistoryController(getChatHistoryService)
 
 	router := gin.Default()
 	auth := router.Group("/auth")
@@ -70,6 +78,11 @@ func main() {
 	api.GET("/me", meController.Me)
 	api.POST("/chats", createChatController.Create)
 	api.GET("/chats", getChatsController.GetChats)
+	api.GET("/users/search", searchUsersController.SearchUsers)
+
+	chats := api.Group("/chats")
+	chats.POST("/:chat_id/messages", sendMessagesController.Send)
+	chats.GET("/:chat_id/messages", getChatHistoryController.GetHistory)
 
 	err = router.Run(":8080")
 	if err != nil {

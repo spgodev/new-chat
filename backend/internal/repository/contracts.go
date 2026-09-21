@@ -12,6 +12,11 @@ type UsersRepository interface {
 	GetByEmail(ctx context.Context, email string) (*domain.User, error)
 	GetByUsername(ctx context.Context, username string) (*domain.User, error)
 	GetByID(ctx context.Context, userID int64) (*domain.User, error)
+	SearchByUsernamePrefix(
+		ctx context.Context,
+		prefix string,
+		limit int,
+	) ([]domain.User, error)
 }
 
 type RefreshTokenRepository interface {
@@ -31,4 +36,10 @@ type DirectChatsRepository interface {
 	Create(ctx context.Context, user1ID int64, user2ID int64, user1Title string, user2Title string) (*domain.DirectChat, error)
 	GetByUser(ctx context.Context, userID int64) ([]domain.DirectChat, error)
 	GetByUsers(ctx context.Context, user1ID int64, user2ID int64) (*domain.DirectChat, error)
+	GetByID(ctx context.Context, chatID int64) (*domain.DirectChat, error)
+}
+
+type MessagesRepository interface {
+	Create(ctx context.Context, chatID int64, senderID int64, text string) (*domain.Message, error)
+	GetByChat(ctx context.Context, chatID int64, limit int) ([]domain.Message, error)
 }

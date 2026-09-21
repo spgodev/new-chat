@@ -8,7 +8,7 @@ password_hash TEXT NOT NULL,
 
 CREATE TABLE refresh_tokens (
 id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     token_hash TEXT UNIQUE NOT NULL,
 created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 expires_at TIMESTAMPTZ NOT NULL,
@@ -17,8 +17,8 @@ expires_at TIMESTAMPTZ NOT NULL,
 
 CREATE TABLE direct_chats (
     id BIGSERIAL PRIMARY KEY,
-    user1_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
-    user2_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
+    user1_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user2_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     user1_title TEXT NOT NULL,
     user2_title TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -26,3 +26,15 @@ CREATE TABLE direct_chats (
                           CHECK (user1_id < user2_id),
                           UNIQUE (user1_id, user2_id)
 );
+
+CREATE TYPE message_status AS ENUM('sent','read');
+
+CREATE TABLE messages (
+    id BIGSERIAL PRIMARY KEY,
+    chat_id BIGINT NOT NULL REFERENCES direct_chats(id) ON DELETE CASCADE,
+    sender_id BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    text TEXT NOT NULL,
+    status message_status NOT NULL DEFAULT 'sent',
+    sent_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    read_at TIMESTAMPTZ
+)

@@ -88,3 +88,34 @@ FROM users
 	}
 	return &u, nil
 }
+
+func (r *UsersRepositoryPG) SearchByUsernamePrefix(
+	ctx context.Context,
+	prefix string,
+	limit int,
+) ([]domain.User, error) {
+
+	rows, err := r.pool.Query(ctx, `
+SELECT id, username
+FROM users
+WHERE username ILIKE $1
+ORDER BY username
+LIMIT $2`, prefix+"%", limit)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	responds := []domain.User{}
+	for rows.Next() {
+		var c domain.User
+		if err := rows.Scan(&c.ID, &c.Username); err != nil {
+			return nil, err
+		}
+		responds = append(responds, c)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return responds, nil
+}
