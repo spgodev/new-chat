@@ -37,6 +37,7 @@ func (c *SendMessageController) Send(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "text is required"})
 		return
 	}
+
 	message, err := c.messages.Send(ctx.Request.Context(), chatID, userID, req.Text)
 	if err != nil {
 		switch {

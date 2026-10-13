@@ -17,6 +17,7 @@ type UsersRepository interface {
 		prefix string,
 		limit int,
 	) ([]domain.User, error)
+	UpdateLastSeen(ctx context.Context, userID int64) error
 }
 
 type RefreshTokenRepository interface {
@@ -42,4 +43,5 @@ type DirectChatsRepository interface {
 type MessagesRepository interface {
 	Create(ctx context.Context, chatID int64, senderID int64, text string) (*domain.Message, error)
 	GetByChat(ctx context.Context, chatID int64, limit int) ([]domain.Message, error)
+	MarkAsRead(ctx context.Context, chatID int64, readerID int64) error
 }

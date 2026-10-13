@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New Chat</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="toast" class="toast hidden"></div>
+
+  <section id="authView" class="auth-shell">
+    <div class="auth-card">
+      <div class="brand">New Chat</div>
+      <p class="muted">Frontend для тестирования Go backend</p>
+
+      <div class="tabs">
+        <button id="loginTab" class="tab active" type="button">Вход</button>
+        <button id="registerTab" class="tab" type="button">Регистрация</button>
+      </div>
+
+      <form id="authForm" class="stack">
+        <label class="field">
+          <span>Username</span>
+          <input id="usernameInput" autocomplete="username" required />
+        </label>
+
+        <label id="emailWrap" class="field hidden">
+          <span>Email</span>
+          <input id="emailInput" type="email" autocomplete="email" />
+        </label>
+
+        <label class="field">
+          <span>Пароль</span>
+          <input id="passwordInput" type="password" autocomplete="current-password" required />
+        </label>
+
+        <button id="authSubmit" class="primary" type="submit">Войти</button>
+      </form>
+    </div>
+  </section>
+
+  <section id="appView" class="app hidden">
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div>
+          <div class="brand small">New Chat</div>
+          <div id="meLabel" class="muted small-text">—</div>
+        </div>
+        <button id="logoutBtn" class="ghost" type="button">Выйти</button>
+      </div>
+
+      <div class="search-box">
+        <input id="userSearchInput" placeholder="Найти пользователя..." autocomplete="off" />
+        <div id="userSearchResults" class="search-results"></div>
+      </div>
+
+      <div class="section-title">Чаты</div>
+      <div id="chatList" class="chat-list"></div>
+    </aside>
+
+    <main class="chat-pane">
+      <div id="emptyState" class="empty-state">
+        <div class="empty-icon">💬</div>
+        <h2>Выберите чат</h2>
+        <p class="muted">Или найдите пользователя слева и создайте новый чат.</p>
+      </div>
+
+      <div id="chatView" class="chat-view hidden">
+        <header class="chat-header">
+          <div>
+            <div id="chatTitle" class="chat-title">—</div>
+            <div id="chatPresence" class="presence muted">—</div>
+          </div>
+          <button id="reloadBtn" class="ghost" type="button">Обновить</button>
+        </header>
+
+        <div id="messages" class="messages"></div>
+        <div id="typingIndicator" class="typing hidden">Печатает…</div>
+
+        <form id="messageForm" class="composer">
+          <input id="messageInput" autocomplete="off" placeholder="Сообщение..." />
+          <button class="primary" type="submit">Отправить</button>
+        </form>
+      </div>
+    </main>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>

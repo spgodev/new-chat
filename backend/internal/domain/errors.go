@@ -17,4 +17,5 @@ var (
 	ErrChatAlreadyExist      = errors.New("chat already exist")
 	ErrChatNotFound          = errors.New("chat not found")
 	ErrEmptyMessage          = errors.New("you can't send empty message")
+	ErrConnectionNotFound    = errors.New("connection not found")
 )

@@ -32,11 +32,15 @@ RETURNING id, chat_id, sender_id, text, status, sent_at, read_at
 func (m *MessageRepositoryPG) GetByChat(ctx context.Context, chatID int64, limit int) ([]domain.Message, error) {
 
 	rows, err := m.pool.Query(ctx, `
+SELECT *
+FROM (
 SELECT id, chat_id, sender_id, text, status, sent_at, read_at
 FROM messages
 WHERE chat_id = $1
-ORDER BY sent_at
+ORDER BY sent_at DESC
 LIMIT $2
+) AS recent_messages
+ORDER BY sent_at ASC;
 `, chatID, limit)
 	if err != nil {
 		return nil, err
@@ -59,4 +63,18 @@ LIMIT $2
 	}
 
 	return messages, nil
+}
+
+func (m *MessageRepositoryPG) MarkAsRead(ctx context.Context, chatID int64, readerID int64) error {
+	_, err := m.pool.Exec(ctx, `
+UPDATE messages
+SET read_at = now(), status = 'read'
+WHERE chat_id = $1 AND
+      sender_id<>$2 AND
+      status = 'sent'
+		`, chatID, readerID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

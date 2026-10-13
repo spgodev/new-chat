@@ -76,9 +76,9 @@ RETURNING id, username, email, password_hash, created_at`, user.Username, user.E
 func (r *UsersRepositoryPG) GetByID(ctx context.Context, userID int64) (*domain.User, error) {
 	var u domain.User
 	err := r.pool.QueryRow(ctx,
-		`SELECT id, username, email, password_hash, created_at 
+		`SELECT id, username, email, password_hash, created_at, last_seen_at
 FROM users
-     WHERE id = $1`, userID).Scan(&u.ID, &u.Username, &u.Email, &u.PasswordHash, &u.CreatedAt)
+     WHERE id = $1`, userID).Scan(&u.ID, &u.Username, &u.Email, &u.PasswordHash, &u.CreatedAt, &u.LastSeenAt)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -118,4 +118,20 @@ LIMIT $2`, prefix+"%", limit)
 		return nil, err
 	}
 	return responds, nil
+}
+
+func (r *UsersRepositoryPG) UpdateLastSeen(ctx context.Context, userID int64) error {
+
+	result, err := r.pool.Exec(ctx, `UPDATE users
+SET last_seen_at = now()
+WHERE id = $1
+`, userID)
+
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return domain.ErrUserNotFound
+	}
+	return nil
 }

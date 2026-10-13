@@ -3,8 +3,10 @@ package story
 import (
 	"New_Chat/backend/internal/domain"
 	"New_Chat/backend/internal/repository"
+	"New_Chat/backend/internal/ws"
 	"context"
 	"errors"
+	"log/slog"
 )
 
 type CreateDirectChatInput struct {
@@ -14,10 +16,11 @@ type CreateDirectChatInput struct {
 type CreateDirectChatService struct {
 	directChats repository.DirectChatsRepository
 	users       repository.UsersRepository
+	hub         *ws.Hub
 }
 
-func NewCreateDirectChatService(directChats repository.DirectChatsRepository, users repository.UsersRepository) *CreateDirectChatService {
-	return &CreateDirectChatService{directChats: directChats, users: users}
+func NewCreateDirectChatService(directChats repository.DirectChatsRepository, users repository.UsersRepository, hub *ws.Hub) *CreateDirectChatService {
+	return &CreateDirectChatService{directChats: directChats, users: users, hub: hub}
 }
 
 func (c *CreateDirectChatService) Create(ctx context.Context, input CreateDirectChatInput) (*domain.DirectChat, error) {
@@ -51,9 +54,33 @@ func (c *CreateDirectChatService) Create(ctx context.Context, input CreateDirect
 		user1Title = "chat with " + currentUser.Username
 		user2Title = "chat with " + otherUser.Username
 	}
+
 	chat, err := c.directChats.Create(ctx, user1ID, user2ID, user1Title, user2Title)
+
 	if err != nil {
 		return nil, err
 	}
+
+	slog.Info(
+		"direct chat created",
+		"chat_id", chat.ID,
+		"creator_user_id", currentUser.ID,
+		"other_user_id", otherUser.ID,
+	)
+
+	event := ws.Event{Type: "chat_created",
+		Data: ws.ChatCreatedData{
+			ChatID: chat.ID,
+		}}
+
+	if err := c.hub.Send(otherUser.ID, event); err != nil {
+		slog.Debug(
+			"failed to send chat_created event",
+			"chat_id", chat.ID,
+			"user_id", otherUser.ID,
+			"error", err,
+		)
+	}
+
 	return chat, nil
 }
